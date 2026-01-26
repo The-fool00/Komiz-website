@@ -63,12 +63,15 @@ export async function getComics(params: ComicFilterParams): Promise<PaginatedRes
     if (params.genre_ids) query.set("genre_ids", params.genre_ids);
     if (params.exclude_genre_ids) query.set("exclude_genre_ids", params.exclude_genre_ids);
 
-    const res = await fetch(`${API_BASE}/comics?${query.toString()}`, {
+    // Append trailing slash to avoid 307 Redirects
+    const res = await fetch(`${API_BASE}/comics/?${query.toString()}`, {
         next: { revalidate: 60 },
     });
 
     if (!res.ok) {
-        throw new Error("Failed to fetch comics");
+        console.error(`Failed to fetch comics: ${res.status} ${res.statusText}`);
+        // Return empty result instead of throwing to prevent build failure
+        return { total: 0, page: 1, size: 20, items: [] };
     }
 
     return res.json();
@@ -82,12 +85,14 @@ export interface Genre {
 }
 
 export async function getGenres(): Promise<Genre[]> {
-    const res = await fetch(`${API_BASE}/genres`, {
+    // Append trailing slash to avoid 307 Redirects
+    const res = await fetch(`${API_BASE}/genres/`, {
         next: { revalidate: 3600 }, // Cache for 1 hour
     });
 
     if (!res.ok) {
-        throw new Error("Failed to fetch genres");
+        console.error(`Failed to fetch genres: ${res.status} ${res.statusText}`);
+        return [];
     }
 
     return res.json();
@@ -99,7 +104,11 @@ export async function getComic(slugOrId: string): Promise<Comic> {
     });
 
     if (!res.ok) {
-        throw new Error("Failed to fetch comic");
+        // If 404, throwing is okay as it will render the Not Found page
+        if (res.status === 404) {
+            throw new Error("Comic not found");
+        }
+        throw new Error(`Failed to fetch comic: ${res.status} ${res.statusText}`);
     }
 
     return res.json();
