@@ -3,8 +3,9 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { MagnifyingGlass, Funnel, X, List, SquaresFour, CaretDown, CaretUp } from "@phosphor-icons/react";
+import { MagnifyingGlass, Funnel, SquaresFour, List, CaretDown, CaretUp } from "@phosphor-icons/react";
 import { getComics, getGenres, Comic, Genre } from "@/lib/api";
+import TriStateFilterDropdown, { FilterOption } from "@/components/TriStateFilterDropdown";
 
 export default function BrowsePage() {
     return (
@@ -20,12 +21,24 @@ function BrowseContent() {
 
     // State for filters
     const [query, setQuery] = useState(searchParams.get("search") || "");
-    const [status, setStatus] = useState(searchParams.get("status") || "Any");
-    const [type, setType] = useState(searchParams.get("type") || "Any");
     const [sortBy, setSortBy] = useState(searchParams.get("sort_by") || "updated_at");
     const [order, setOrder] = useState<"asc" | "desc">((searchParams.get("order") as "asc" | "desc") || "desc");
 
-    // Genre State (Included & Excluded)
+    // Multi-Select States
+    const [includedTypes, setIncludedTypes] = useState<string[]>(
+        searchParams.get("type")?.split(",").filter(Boolean) || []
+    );
+    const [excludedTypes, setExcludedTypes] = useState<string[]>(
+        searchParams.get("exclude_type")?.split(",").filter(Boolean) || []
+    );
+
+    const [includedStatus, setIncludedStatus] = useState<string[]>(
+        searchParams.get("status")?.split(",").filter(Boolean) || []
+    );
+    const [excludedStatus, setExcludedStatus] = useState<string[]>(
+        searchParams.get("exclude_status")?.split(",").filter(Boolean) || []
+    );
+
     const [includedGenres, setIncludedGenres] = useState<number[]>(
         searchParams.get("genre_ids")?.split(",").map(Number).filter(Boolean) || []
     );
@@ -39,6 +52,20 @@ function BrowseContent() {
     const [loading, setLoading] = useState(true);
     const [showFilters, setShowFilters] = useState(true);
 
+    // Filter Options
+    const typeOptions: FilterOption[] = [
+        { id: "manhwa", label: "Manhwa" },
+        { id: "manga", label: "Manga" },
+        { id: "manhua", label: "Manhua" },
+    ];
+
+    const statusOptions: FilterOption[] = [
+        { id: "ongoing", label: "Ongoing" },
+        { id: "completed", label: "Completed" },
+        { id: "hiatus", label: "Hiatus" },
+        { id: "cancelled", label: "Cancelled" },
+    ];
+
     // Fetch filters on mount
     useEffect(() => {
         getGenres().then(setGenres).catch(console.error);
@@ -49,8 +76,10 @@ function BrowseContent() {
         setLoading(true);
         const params = {
             search: query,
-            status: status === "Any" ? undefined : status,
-            type: type === "Any" ? undefined : type,
+            type: includedTypes.join(","),
+            exclude_type: excludedTypes.join(","),
+            status: includedStatus.join(","),
+            exclude_status: excludedStatus.join(","),
             sort_by: sortBy,
             order: order,
             genre_ids: includedGenres.join(","),
@@ -66,35 +95,47 @@ function BrowseContent() {
                 console.error(err);
                 setLoading(false);
             });
-    }, [query, status, type, sortBy, order, includedGenres, excludedGenres]);
+    }, [query, sortBy, order, includedTypes, excludedTypes, includedStatus, excludedStatus, includedGenres, excludedGenres]);
 
     // Update URL
     const applyFilters = () => {
         const params = new URLSearchParams();
         if (query) params.set("search", query);
-        if (status !== "Any") params.set("status", status);
-        if (type !== "Any") params.set("type", type);
+
+        if (includedTypes.length > 0) params.set("type", includedTypes.join(","));
+        if (excludedTypes.length > 0) params.set("exclude_type", excludedTypes.join(","));
+
+        if (includedStatus.length > 0) params.set("status", includedStatus.join(","));
+        if (excludedStatus.length > 0) params.set("exclude_status", excludedStatus.join(","));
+
         params.set("sort_by", sortBy);
         params.set("order", order);
+
         if (includedGenres.length > 0) params.set("genre_ids", includedGenres.join(","));
         if (excludedGenres.length > 0) params.set("exclude_genre_ids", excludedGenres.join(","));
 
         router.push(`/browse?${params.toString()}`);
     };
 
-    // Tri-State Handler
-    const toggleGenre = (id: number) => {
-        if (includedGenres.includes(id)) {
-            // State 2 (Included) -> State 3 (Excluded)
-            setIncludedGenres(prev => prev.filter(g => g !== id));
-            setExcludedGenres(prev => [...prev, id]);
-        } else if (excludedGenres.includes(id)) {
-            // State 3 (Excluded) -> State 1 (Neutral)
-            setExcludedGenres(prev => prev.filter(g => g !== id));
-        } else {
-            // State 1 (Neutral) -> State 2 (Included)
-            setIncludedGenres(prev => [...prev, id]);
-        }
+    // Generic Toggle Helpers
+    const handleInclude = (setter: React.Dispatch<React.SetStateAction<any[]>>, item: any) => {
+        setter(prev => [...prev, item]);
+    };
+    const handleExclude = (setter: React.Dispatch<React.SetStateAction<any[]>>, item: any) => {
+        setter(prev => [...prev, item]);
+    };
+    const handleReset = (setterInclude: React.Dispatch<React.SetStateAction<any[]>>, setterExclude: React.Dispatch<React.SetStateAction<any[]>>, item: any) => {
+        setterInclude(prev => prev.filter(i => i !== item));
+        setterExclude(prev => prev.filter(i => i !== item));
+    };
+
+    const resetAll = () => {
+        setQuery("");
+        setIncludedTypes([]); setExcludedTypes([]);
+        setIncludedStatus([]); setExcludedStatus([]);
+        setIncludedGenres([]); setExcludedGenres([]);
+        setSortBy("updated_at");
+        // applyFilters(); call manually
     };
 
     return (
@@ -120,140 +161,106 @@ function BrowseContent() {
                         className={`px-4 py-3 rounded-lg font-medium transition-colors border flex items-center gap-2 ${showFilters ? 'bg-zinc-800 border-zinc-600 text-white' : 'bg-zinc-900 border-zinc-700 text-zinc-400 hover:text-white'}`}
                     >
                         <Funnel size={18} weight={showFilters ? "fill" : "regular"} />
-                        Advanced Filters
+                        Filters
                     </button>
                 </div>
 
-                {/* Filters Panel */}
-                {showFilters && (
-                    <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-6 mb-8 animate-in fade-in slide-in-from-top-2">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
-                            {/* Sort By */}
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-zinc-500 uppercase">Sort By</label>
-                                <div className="flex gap-2">
-                                    <div className="flex-1 relative">
-                                        <select
-                                            value={sortBy}
-                                            onChange={(e) => setSortBy(e.target.value)}
-                                            className="w-full appearance-none bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-primary"
-                                        >
-                                            <option value="updated_at">Latest Update</option>
-                                            <option value="created_at">Added Date</option>
-                                            <option value="title">Alphabetical</option>
-                                            <option value="rating">Rating</option>
-                                            <option value="view_count">Popularity</option>
-                                        </select>
-                                        <CaretDown className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" size={12} />
-                                    </div>
-                                    <button
-                                        onClick={() => setOrder(order === "asc" ? "desc" : "asc")}
-                                        className="bg-zinc-800 border border-zinc-700 rounded px-3 text-zinc-400 hover:text-white"
-                                        title={order === "asc" ? "Ascending" : "Descending"}
-                                    >
-                                        {order === "asc" ? <CaretUp size={16} /> : <CaretDown size={16} />}
-                                    </button>
-                                </div>
-                            </div>
 
-                            {/* Type */}
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-zinc-500 uppercase">Type</label>
-                                <div className="relative">
-                                    <select
-                                        value={type}
-                                        onChange={(e) => setType(e.target.value)}
-                                        className="w-full appearance-none bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-primary"
-                                    >
-                                        <option value="Any">Any</option>
-                                        <option value="manhwa">Manhwa</option>
-                                        <option value="manga">Manga</option>
-                                        <option value="manhua">Manhua</option>
-                                    </select>
-                                    <CaretDown className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" size={12} />
-                                </div>
-                            </div>
+                {/* Filters Panel (Animated) */}
+                <div className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${showFilters ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+                    <div className="overflow-hidden">
+                        <div className="bg-[#0f1115] border border-zinc-800 rounded-lg p-6 mb-8 shadow-xl">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
-                            {/* Status */}
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-zinc-500 uppercase">Status</label>
-                                <div className="relative">
-                                    <select
-                                        value={status}
-                                        onChange={(e) => setStatus(e.target.value)}
-                                        className="w-full appearance-none bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-primary"
-                                    >
-                                        <option value="Any">Any</option>
-                                        <option value="ongoing">Ongoing</option>
-                                        <option value="completed">Completed</option>
-                                        <option value="hiatus">Hiatus</option>
-                                    </select>
-                                    <CaretDown className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" size={12} />
-                                </div>
-                            </div>
-
-                            {/* Genres Selector */}
-                            <div className="lg:col-span-4 space-y-2 border-t border-zinc-800 pt-4 mt-2">
-                                <div className="flex justify-between items-center">
-                                    <label className="text-xs font-bold text-zinc-500 uppercase">Genres</label>
-                                    {(includedGenres.length > 0 || excludedGenres.length > 0) && (
-                                        <button
-                                            onClick={() => { setIncludedGenres([]); setExcludedGenres([]); }}
-                                            className="text-xs text-zinc-500 hover:text-white"
-                                        >
-                                            Reset Filters
-                                        </button>
-                                    )}
-                                </div>
-                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 max-h-48 overflow-y-auto scrollbar-thin pr-2">
-                                    {genres.map(genre => {
-                                        const isIncluded = includedGenres.includes(genre.id);
-                                        const isExcluded = excludedGenres.includes(genre.id);
-
-                                        return (
-                                            <button
-                                                key={genre.id}
-                                                onClick={() => toggleGenre(genre.id)}
-                                                className={`text-left px-2 py-1.5 rounded text-xs transition-colors flex items-center gap-2 group ${isIncluded
-                                                    ? 'bg-green-500/10 text-green-500 hover:bg-green-500/20'
-                                                    : isExcluded
-                                                        ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20 decoration-red-500/50 line-through'
-                                                        : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
-                                                    }`}
+                                {/* Sort By (Standard Dropdown) */}
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-zinc-500 uppercase">Sort By</label>
+                                    <div className="flex gap-2">
+                                        <div className="flex-1 relative">
+                                            <select
+                                                value={sortBy}
+                                                onChange={(e) => setSortBy(e.target.value)}
+                                                className="w-full appearance-none bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-primary"
                                             >
-                                                {/* Visual Indicator */}
-                                                <div className={`w-3 h-3 flex items-center justify-center rounded-sm text-[10px] font-bold shrink-0 ${isIncluded ? 'bg-green-500 text-black' :
-                                                    isExcluded ? 'bg-red-500 text-white' :
-                                                        'bg-zinc-700 group-hover:bg-zinc-600'
-                                                    }`}>
-                                                    {isIncluded && "+"}
-                                                    {isExcluded && "-"}
-                                                </div>
-                                                <span className={isExcluded ? "opacity-75" : ""}>{genre.name}</span>
-                                            </button>
-                                        );
-                                    })}
+                                                <option value="updated_at">Latest Update</option>
+                                                <option value="created_at">Added Date</option>
+                                                <option value="title">Alphabetical</option>
+                                                <option value="rating">Rating</option>
+                                                <option value="view_count">Popularity</option>
+                                            </select>
+                                            <CaretDown className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" size={12} />
+                                        </div>
+                                        <button
+                                            onClick={() => setOrder(order === "asc" ? "desc" : "asc")}
+                                            className="bg-zinc-800 border border-zinc-700 rounded px-3 text-zinc-400 hover:text-white"
+                                            title={order === "asc" ? "Ascending" : "Descending"}
+                                        >
+                                            {order === "asc" ? <CaretUp size={16} /> : <CaretDown size={16} />}
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <div className="mt-6 flex justify-end">
-                            <button
-                                onClick={applyFilters}
-                                className="bg-primary hover:bg-green-400 text-black font-bold py-2 px-8 rounded-lg transition-colors shadow-lg shadow-green-500/20"
-                            >
-                                Apply Filters
-                            </button>
+                                {/* Type (Tri-State) */}
+                                <TriStateFilterDropdown
+                                    label="Type"
+                                    options={typeOptions}
+                                    includedIds={includedTypes}
+                                    excludedIds={excludedTypes}
+                                    onInclude={(id) => handleInclude(setIncludedTypes, id)}
+                                    onExclude={(id) => handleExclude(setExcludedTypes, id)}
+                                    onReset={(id) => handleReset(setIncludedTypes, setExcludedTypes, id)}
+                                />
+
+                                {/* Status (Tri-State) */}
+                                <TriStateFilterDropdown
+                                    label="Status"
+                                    options={statusOptions}
+                                    includedIds={includedStatus}
+                                    excludedIds={excludedStatus}
+                                    onInclude={(id) => handleInclude(setIncludedStatus, id)}
+                                    onExclude={(id) => handleExclude(setExcludedStatus, id)}
+                                    onReset={(id) => handleReset(setIncludedStatus, setExcludedStatus, id)}
+                                />
+
+                                {/* Genres (Groups) */}
+                                <TriStateFilterDropdown
+                                    label="Genres"
+                                    options={genres.map(g => ({ id: g.id, label: g.name }))}
+                                    includedIds={includedGenres}
+                                    excludedIds={excludedGenres}
+                                    onInclude={(id) => handleInclude(setIncludedGenres, id)}
+                                    onExclude={(id) => handleExclude(setExcludedGenres, id)}
+                                    onReset={(id) => handleReset(setIncludedGenres, setExcludedGenres, id)}
+                                    gridCols={4}
+                                />
+
+                            </div>
+
+                            <div className="mt-6 flex justify-between items-center border-t border-zinc-800 pt-4">
+                                <button
+                                    onClick={resetAll}
+                                    className="text-sm text-zinc-500 hover:text-white transition-colors"
+                                >
+                                    Reset All
+                                </button>
+                                <button
+                                    onClick={applyFilters}
+                                    className="bg-primary hover:bg-green-400 text-black font-bold py-2 px-8 rounded-lg transition-colors shadow-lg shadow-green-500/20"
+                                >
+                                    Apply Filters
+                                </button>
+                            </div>
                         </div>
                     </div>
-                )}
+                </div>
 
                 {/* Results Header */}
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-bold text-white">
                         {loading ? "Searching..." : `${comics.length} Results`}
                     </h2>
+                    {/* View Toggle (Visual only for now) */}
                     <div className="flex bg-zinc-900 rounded-lg p-1 border border-zinc-800">
                         <button className="p-2 rounded bg-zinc-800 text-white shadow-sm"><SquaresFour size={20} /></button>
                         <button className="p-2 rounded text-zinc-500 hover:text-white"><List size={20} /></button>
@@ -294,7 +301,7 @@ function BrowseContent() {
                                     <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
                                         <div className="flex items-center justify-between text-xs text-white">
                                             <span>⭐ {comic.rating?.toFixed(1) || "-"}</span>
-                                            <span className="text-zinc-300">{comic.status}</span>
+                                            <span className="text-zinc-300 capitalize">{comic.status}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -313,10 +320,7 @@ function BrowseContent() {
                     <div className="text-center py-20 text-zinc-600 border border-zinc-800 rounded-lg bg-zinc-900/20">
                         <MagnifyingGlass size={48} className="mx-auto mb-4 opacity-50" />
                         <p className="text-lg font-medium text-zinc-400">No comics found matching your criteria.</p>
-                        <button onClick={() => {
-                            setQuery(""); setStatus("Any"); setType("Any");
-                            setIncludedGenres([]); setExcludedGenres([]); applyFilters();
-                        }} className="mt-4 text-primary hover:underline">
+                        <button onClick={resetAll} className="mt-4 text-primary hover:underline">
                             Reset All Filters
                         </button>
                     </div>
