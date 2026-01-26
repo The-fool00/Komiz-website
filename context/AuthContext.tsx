@@ -28,19 +28,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         const storedToken = localStorage.getItem("token");
-        const storedUser = localStorage.getItem("user");
 
-        if (storedToken && storedUser) {
-            try {
-                setToken(storedToken);
-                setUser(JSON.parse(storedUser));
-            } catch (e) {
-                console.error("Failed to parse user data", e);
-                localStorage.removeItem("token");
-                localStorage.removeItem("user");
+        async function initAuth() {
+            if (storedToken) {
+                try {
+                    // Fetch fresh user data
+                    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.komiz.dev/v1";
+                    const res = await fetch(`${API_BASE}/auth/me`, {
+                        headers: { Authorization: `Bearer ${storedToken}` }
+                    });
+
+                    if (res.ok) {
+                        const userData = await res.json();
+                        setUser(userData);
+                        setToken(storedToken);
+                        // Update local storage with fresh data
+                        localStorage.setItem("user", JSON.stringify(userData));
+                    } else {
+                        // Token invalid or expired
+                        localStorage.removeItem("token");
+                        localStorage.removeItem("user");
+                        setToken(null);
+                        setUser(null);
+                    }
+                } catch (e) {
+                    console.error("Failed to fetch user data", e);
+                    // Fallback to stored user if fetch fails (offline?) or clear?
+                    // Safer to clear or keep as is? Let's keep as is but try to parse stored user as fallback
+                    const storedUser = localStorage.getItem("user");
+                    if (storedUser) setUser(JSON.parse(storedUser));
+                }
             }
+            setIsLoading(false);
         }
-        setIsLoading(false);
+
+        initAuth();
     }, []);
 
     const login = (userData: User, newToken: string) => {

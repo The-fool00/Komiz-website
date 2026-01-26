@@ -13,7 +13,8 @@ import {
   SignOut,
   ClockCounterClockwise,
   PuzzlePiece,
-  Gear
+  Gear,
+  ShieldCheck
 } from "@phosphor-icons/react";
 import { IoLibraryOutline } from "react-icons/io5";
 import Link from "next/link";
@@ -244,6 +245,12 @@ export default function Navbar() {
                         <Gear size={18} />
                         Settings
                       </Link>
+                      {user.role === "admin" && (
+                        <Link href="/admin" className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors border-t border-zinc-800 mt-1 pt-2">
+                          <ShieldCheck size={18} />
+                          Admin Dashboard
+                        </Link>
+                      )}
                     </div>
 
                     <div className="border-t border-zinc-800 py-1">
