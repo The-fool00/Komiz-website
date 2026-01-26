@@ -4,6 +4,8 @@ import { Plus, PencilSimple, Trash } from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
 import Link from "next/link";
 
+import RefreshStubsButton from "@/components/admin/RefreshStubsButton";
+
 export default async function AdminComicsPage() {
     const comics = await getComics({ size: 20 });
 
@@ -11,13 +13,16 @@ export default async function AdminComicsPage() {
         <div>
             <div className="flex items-center justify-between mb-8">
                 <h1 className="text-3xl font-bold text-white">Manage Comics</h1>
-                <Link
-                    href="/admin/comics/new"
-                    className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-bold text-black hover:bg-green-400 transition-colors"
-                >
-                    <Plus size={20} weight="bold" />
-                    Add Comic
-                </Link>
+                <div className="flex gap-4">
+                    <RefreshStubsButton />
+                    <Link
+                        href="/admin/comics/new"
+                        className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-bold text-black hover:bg-green-400 transition-colors"
+                    >
+                        <Plus size={20} weight="bold" />
+                        Add Comic
+                    </Link>
+                </div>
             </div>
 
             <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 overflow-hidden">
