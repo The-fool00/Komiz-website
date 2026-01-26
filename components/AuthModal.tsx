@@ -25,12 +25,10 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
         setLoading(true);
         setError(null);
 
-        const API_BASE = "https://api.komiz.dev/v1"; // Or use env
-        // For local dev it might differ, but let's assume deployed URL or relative proxy?
-        // Ideally relative "/v1" if proxied, but explicit is safer for now if CORS allowed.
-        // Actually, let's use explicit URL for now or relative if configured in next.config
-        // Given previous usage, explicit seems common or relative. previous api.ts used explicit.
-        const url = isLogin ? `${API_BASE}/auth/login` : `${API_BASE}/auth/register`;
+        const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.komiz.dev/v1";
+
+        // Use trailing slashes to avoid 307 Redirects which cause CORS issues
+        const url = isLogin ? `${API_BASE}/auth/login/` : `${API_BASE}/auth/register/`;
 
         try {
             let body;
@@ -62,7 +60,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
             if (isLogin) {
                 const token = data.access_token;
                 // Fetch User Me
-                const meRes = await fetch(`${API_BASE}/auth/me`, {
+                const meRes = await fetch(`${API_BASE}/auth/me/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const meData = await meRes.json();
