@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User, Books, ChatCircle, Gear, SignOut, Camera, Key } from "@phosphor-icons/react";
+import { User, ChatCircle, Gear, SignOut, Camera, Key } from "@phosphor-icons/react";
+import { IoLibraryOutline, IoLibrary } from "react-icons/io5";
 import md5 from "blueimp-md5";
 import Link from "next/link";
 
@@ -20,7 +21,7 @@ export default function ProfilePage() {
 
     const tabs = [
         { name: "Profile", icon: User },
-        { name: "Library", icon: Books },
+        { name: "Library", icon: IoLibraryOutline },
         { name: "Comments", icon: ChatCircle },
         { name: "Settings", icon: Gear },
     ];
@@ -66,22 +67,37 @@ export default function ProfilePage() {
             <div className="mt-16 border-b border-zinc-800">
                 <div className="container mx-auto px-4">
                     <div className="flex gap-8 overflow-x-auto scrollbar-hide">
-                        {tabs.map((tab) => (
-                            <button
-                                key={tab.name}
-                                onClick={() => setActiveTab(tab.name)}
-                                className={`flex items-center gap-2 pb-4 text-sm font-medium transition-colors relative whitespace-nowrap ${activeTab === tab.name
-                                        ? "text-white"
-                                        : "text-zinc-500 hover:text-zinc-300"
-                                    }`}
-                            >
-                                <tab.icon size={20} weight={activeTab === tab.name ? "fill" : "regular"} />
-                                {tab.name}
-                                {activeTab === tab.name && (
-                                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full"></div>
-                                )}
-                            </button>
-                        ))}
+                        {tabs.map((tab) => {
+                            const isActive = activeTab === tab.name;
+                            let Icon = tab.icon;
+
+                            // Special handling for Library tab using React Icons
+                            if (tab.name === "Library") {
+                                Icon = isActive ? IoLibrary : IoLibraryOutline;
+                            }
+
+                            return (
+                                <button
+                                    key={tab.name}
+                                    onClick={() => setActiveTab(tab.name)}
+                                    className={`flex items-center gap-2 pb-4 text-sm font-medium transition-colors relative whitespace-nowrap ${isActive ? "text-white" : "text-zinc-500 hover:text-zinc-300"
+                                        }`}
+                                >
+                                    {/* Render Icon with specific props based on library */}
+                                    {tab.name === "Library" ? (
+                                        <Icon size={20} />
+                                    ) : (
+                                        // Phosphor icons support weight prop
+                                        <Icon size={20} weight={isActive ? "fill" : "regular"} />
+                                    )}
+
+                                    {tab.name}
+                                    {isActive && (
+                                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full"></div>
+                                    )}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             </div>
@@ -149,7 +165,7 @@ export default function ProfilePage() {
 
                 {activeTab === "Library" && (
                     <div className="text-center py-20 text-zinc-500">
-                        <Books size={48} className="mx-auto mb-4 opacity-50" />
+                        <IoLibraryOutline size={48} className="mx-auto mb-4 opacity-50" />
                         <h3 className="text-lg font-bold text-white mb-2">Your Library is empty</h3>
                         <p>Start adding comics to your library to track them here.</p>
                         <Link href="/browse" className="inline-block mt-6 px-6 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded transition-colors">

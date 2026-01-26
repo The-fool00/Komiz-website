@@ -11,11 +11,11 @@ import {
   User,
   SignIn,
   SignOut,
-  Books,
   ClockCounterClockwise,
   PuzzlePiece,
   Gear
 } from "@phosphor-icons/react";
+import { IoLibraryOutline } from "react-icons/io5";
 import Link from "next/link";
 import Image from "next/image";
 import { getComics, Comic } from "@/lib/api";
@@ -236,7 +236,7 @@ export default function Navbar() {
                         Edit Profile
                       </Link>
                       <Link href="/library" className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors">
-                        <Books size={18} />
+                        <IoLibraryOutline size={18} />
                         Library
                       </Link>
                       <Link href="/history" className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors">

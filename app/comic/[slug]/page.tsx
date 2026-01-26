@@ -3,7 +3,8 @@ import { mockChapters } from "@/lib/mockdata";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { formatShortTime } from "@/lib/time";
-import { ArrowLeft, Star, BookOpen, Books, ShareNetwork } from "@phosphor-icons/react/dist/ssr";
+import { ArrowLeft, Star, BookOpen, ShareNetwork } from "@phosphor-icons/react/dist/ssr";
+import { PiBookmarkSimple } from "react-icons/pi";
 import ChapterList from "@/components/ChapterList";
 import { marked } from "marked";
 
@@ -95,7 +96,7 @@ export default async function ComicPage({ params }: ComicPageProps) {
                                     Start Reading
                                 </button>
                                 <button className="flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-800/50 px-5 py-3 text-white hover:bg-zinc-700 transition-colors">
-                                    <Books size={20} />
+                                    <PiBookmarkSimple size={20} />
                                     Add to Library
                                 </button>
                                 <button className="flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-800/50 px-5 py-3 text-white hover:bg-zinc-700 transition-colors">
