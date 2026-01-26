@@ -3,7 +3,20 @@
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import md5 from "blueimp-md5";
-import { MagnifyingGlass, Funnel, List, Shuffle, User, SignIn, SignOut } from "@phosphor-icons/react";
+import {
+  MagnifyingGlass,
+  Funnel,
+  List,
+  Shuffle,
+  User,
+  SignIn,
+  SignOut,
+  Bell,
+  Bookmarks,
+  ClockCounterClockwise,
+  PuzzlePiece,
+  Gear
+} from "@phosphor-icons/react";
 import Link from "next/link";
 import Image from "next/image";
 import { getComics, Comic } from "@/lib/api";
@@ -37,6 +50,8 @@ export default function Navbar() {
   // Auth State
   const [user, setUser] = useState<any>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const profileDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Check local storage for auth
@@ -52,6 +67,9 @@ export default function Navbar() {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
+      }
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
+        setShowProfileDropdown(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -194,17 +212,65 @@ export default function Navbar() {
             </button>
 
             {user ? (
-              <div className="flex items-center gap-3">
-                <div className="relative h-9 w-9 overflow-hidden rounded-full border border-zinc-700">
+              <div className="relative" ref={profileDropdownRef}>
+                <button
+                  onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                  className="relative h-9 w-9 overflow-hidden rounded-full border border-zinc-700 hover:border-zinc-500 transition-colors focus:outline-none"
+                >
                   <img
                     src={gravatarUrl}
                     alt={user.username}
                     className="h-full w-full object-cover"
                   />
-                </div>
-                <button onClick={handleLogout} className="text-zinc-400 hover:text-red-500 transition-colors" title="Logout">
-                  <SignOut size={24} />
                 </button>
+
+                {showProfileDropdown && (
+                  <div className="absolute right-0 top-full mt-2 w-56 rounded-md border border-zinc-800 bg-[#121212] shadow-xl py-1 z-50">
+                    <div className="px-4 py-3 border-b border-zinc-800">
+                      <p className="text-sm font-medium text-white truncate">{user.username}</p>
+                      <p className="text-xs text-zinc-500 truncate">{user.email}</p>
+                    </div>
+
+                    <div className="py-1">
+                      <Link href="/profile/edit" className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors">
+                        <User size={18} />
+                        Edit Profile
+                      </Link>
+                      <Link href="/notifications" className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors">
+                        <Bell size={18} />
+                        Notifications
+                      </Link>
+                      <Link href="/bookmarks" className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors">
+                        <Bookmarks size={18} />
+                        Bookmarks
+                      </Link>
+                      <Link href="/history" className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors">
+                        <ClockCounterClockwise size={18} />
+                        History
+                      </Link>
+                    </div>
+                    <div className="border-t border-zinc-800 py-1">
+                      <Link href="/import-export" className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors">
+                        <PuzzlePiece size={18} />
+                        Import & Export
+                      </Link>
+                      <Link href="/settings" className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors">
+                        <Gear size={18} />
+                        Settings
+                      </Link>
+                    </div>
+
+                    <div className="border-t border-zinc-800 py-1">
+                      <button
+                        onClick={handleLogout}
+                        className="flex w-full items-center gap-3 px-4 py-2 text-sm text-red-500 hover:bg-zinc-800 hover:text-red-400 transition-colors"
+                      >
+                        <SignOut size={18} />
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <button
