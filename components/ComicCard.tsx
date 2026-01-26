@@ -22,7 +22,7 @@ export default function ComicCard({ rank, title, cover, chapter, time, slug, var
             src={(cover?.startsWith("http") || cover?.startsWith("/")) ? cover : "/placeholder.png"}
             alt={title}
             fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            className="object-cover transition-transform duration-300"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
           {/* Rank Badge */}

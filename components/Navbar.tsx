@@ -231,15 +231,15 @@ export default function Navbar() {
                     </div>
 
                     <div className="py-1">
-                      <Link href="/profile" className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors">
+                      <Link href={`/users/${user.id}/profile`} className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors">
                         <User size={18} />
                         Edit Profile
                       </Link>
-                      <Link href="/library" className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors">
+                      <Link href={`/users/${user.id}/library`} className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors">
                         <IoLibraryOutline size={18} />
                         Library
                       </Link>
-                      <Link href="/history" className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors">
+                      <Link href={`/users/${user.id}/history`} className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors">
                         <ClockCounterClockwise size={18} />
                         History
                       </Link>
