@@ -11,8 +11,7 @@ import {
   User,
   SignIn,
   SignOut,
-  Bell,
-  Bookmarks,
+  Books,
   ClockCounterClockwise,
   PuzzlePiece,
   Gear
@@ -236,13 +235,9 @@ export default function Navbar() {
                         <User size={18} />
                         Edit Profile
                       </Link>
-                      <Link href="/notifications" className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors">
-                        <Bell size={18} />
-                        Notifications
-                      </Link>
-                      <Link href="/bookmarks" className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors">
-                        <Bookmarks size={18} />
-                        Bookmarks
+                      <Link href="/library" className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors">
+                        <Books size={18} />
+                        Library
                       </Link>
                       <Link href="/history" className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors">
                         <ClockCounterClockwise size={18} />
