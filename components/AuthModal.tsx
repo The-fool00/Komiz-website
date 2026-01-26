@@ -27,8 +27,8 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
 
         const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.komiz.dev/v1";
 
-        // Use trailing slashes to avoid 307 Redirects which cause CORS issues
-        const url = isLogin ? `${API_BASE}/auth/login/` : `${API_BASE}/auth/register/`;
+        // Use NO trailing slashes to match backend definition and avoid 307 Redirects
+        const url = isLogin ? `${API_BASE}/auth/login` : `${API_BASE}/auth/register`;
 
         try {
             let body;
@@ -60,7 +60,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
             if (isLogin) {
                 const token = data.access_token;
                 // Fetch User Me
-                const meRes = await fetch(`${API_BASE}/auth/me/`, {
+                const meRes = await fetch(`${API_BASE}/auth/me`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const meData = await meRes.json();
