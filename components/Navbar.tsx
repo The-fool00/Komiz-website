@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import md5 from "blueimp-md5";
 import {
@@ -37,8 +37,16 @@ function HighlightMatch({ text, query }: { text: string; query: string }) {
   );
 }
 
+import { useAuth } from "@/context/AuthContext";
+
+// ...
+
 export default function Navbar() {
   const router = useRouter();
+  const pathname = usePathname(); // Import this
+  const { user, login, logout } = useAuth();
+
+  if (pathname?.startsWith("/admin")) return null;
 
   // Search State
   const [query, setQuery] = useState("");
@@ -46,24 +54,16 @@ export default function Navbar() {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Auth State
-  const [user, setUser] = useState<any>(null);
+  // Auth UI State (Modal/Dropdown)
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    // Check local storage for auth
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (e) {
-        localStorage.removeItem("user");
-      }
-    }
+  // NOTE: AuthContext handles initial load and storage check now.
 
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      // ... (keep existing click outside logic)
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
       }
@@ -107,17 +107,8 @@ export default function Navbar() {
     setQuery("");
   }
 
-  const handleLoginSuccess = (userData: any, token: string) => {
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(userData));
-    setUser(userData);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setUser(null);
-  };
+  // const handleLoginSuccess... REMOVED (Use Context)
+  // const handleLogout... REMOVED (Use Context)
 
   const gravatarUrl = user ? `https://www.gravatar.com/avatar/${md5(user.email.toLowerCase().trim())}?d=mp` : "";
 
@@ -257,7 +248,7 @@ export default function Navbar() {
 
                     <div className="border-t border-zinc-800 py-1">
                       <button
-                        onClick={handleLogout}
+                        onClick={logout}
                         className="flex w-full items-center gap-3 px-4 py-2 text-sm text-red-500 hover:bg-zinc-800 hover:text-red-400 transition-colors"
                       >
                         <SignOut size={18} />
@@ -278,7 +269,7 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
-      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} onLoginSuccess={handleLoginSuccess} />
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} onLoginSuccess={login} />
     </>
   );
 }

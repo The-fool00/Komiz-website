@@ -5,6 +5,8 @@ export interface Comic {
     title: string;
     slug: string;
     description: string | null;
+    created_at?: string;
+    updated_at?: string;
     cover_url: string | null;
     status: string;
     type: string;
