@@ -1,4 +1,5 @@
 import { getGroup, getGroupChapters } from "@/lib/api";
+import { MangaUpdatesIcon } from "@/components/icons/MangaUpdatesIcon";
 import { Globe, DiscordLogo, XLogo, BookBookmark, EnvelopeSimple, SealCheck } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -59,7 +60,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
                                 )}
                                 {group.mangaupdates_url && (
                                     <a href={group.mangaupdates_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-zinc-400 hover:text-orange-400 transition-colors">
-                                        <BookBookmark size={18} />
+                                        <MangaUpdatesIcon size={18} />
                                         MangaUpdates
                                     </a>
                                 )}
