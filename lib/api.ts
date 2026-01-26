@@ -1,4 +1,4 @@
-const API_BASE = "https://api.komiz.dev/v1";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.komiz.dev/v1";
 
 export interface Comic {
     id: string;
