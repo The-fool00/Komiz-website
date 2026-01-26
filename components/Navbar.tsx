@@ -231,7 +231,7 @@ export default function Navbar() {
                     </div>
 
                     <div className="py-1">
-                      <Link href="/profile/edit" className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors">
+                      <Link href="/profile" className="flex items-center gap-3 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors">
                         <User size={18} />
                         Edit Profile
                       </Link>
