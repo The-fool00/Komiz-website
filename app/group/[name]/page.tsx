@@ -117,8 +117,8 @@ export default async function GroupPage({ params }: GroupPageProps) {
                 </div>
 
                 {/* Content Split: Chapters & Stats/Sidebar potentially? For now just chapters cleanly */}
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                    <div className="lg:col-span-3">
+                <div className="max-w-5xl mx-auto">
+                    <div>
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-2xl font-bold text-white flex items-center gap-3">
                                 <span className="h-8 w-1.5 rounded-full bg-primary block"></span>
@@ -157,14 +157,7 @@ export default async function GroupPage({ params }: GroupPageProps) {
                         </div>
                     </div>
 
-                    {/* Sidebar / Stats placeholder */}
-                    <div className="hidden lg:block">
-                        <div className="rounded-xl border border-zinc-800 bg-zinc-900/30 p-6 sticky top-24">
-                            <p className="text-sm text-zinc-500 text-center">
-                                Additional stats or group members could go here.
-                            </p>
-                        </div>
-                    </div>
+
                 </div>
             </div>
         </div>
