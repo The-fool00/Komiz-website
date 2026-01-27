@@ -39,7 +39,17 @@ export interface Comic {
         related_comic?: {
             id: string;
             slug: string;
+            title: string;
             cover_url: string | null;
+            year?: number | null;
+            type?: string;
+            status?: string;
+            rating?: number;
+            genres?: { id: number; name: string; slug: string }[];
+            themes?: { id: number; name: string; slug: string }[];
+            formats?: { id: number; name: string; slug: string }[];
+            creators?: { id: string; name: string; role: string }[];
+            referrers?: { site: string; url: string }[];
         } | null;
     }[];
 }

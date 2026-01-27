@@ -231,7 +231,7 @@ export default async function ComicPage({ params }: ComicPageProps) {
                                                     {rel.relation_type.replace(/_/g, ' ')}
                                                 </div>
                                                 <h4 className="line-clamp-2 text-xs font-bold text-white group-hover:text-zinc-300 transition-colors">
-                                                    {rel.title}
+                                                    {rel.related_comic?.title || rel.title}
                                                 </h4>
                                             </div>
                                         </Link>
