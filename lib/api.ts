@@ -191,6 +191,25 @@ export async function getGroups(): Promise<Group[]> {
     return res.json();
 }
 
+export async function importGroup(mangadexId: string): Promise<Group> {
+    const res = await fetch(`${API_BASE}/groups/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ mangadex_id: mangadexId }),
+    });
+
+    if (!res.ok) {
+        if (res.status === 409) {
+            throw new Error("Group already exists");
+        }
+        throw new Error(`Failed to import group: ${res.status} ${res.statusText}`);
+    }
+
+    return res.json();
+}
+
 export async function getGroup(slug: string): Promise<Group> {
     const res = await fetch(`${API_BASE}/groups/${slug}`, {
         next: { revalidate: 600 },

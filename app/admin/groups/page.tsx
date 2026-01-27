@@ -1,6 +1,7 @@
 import { getGroups } from "@/lib/api";
 import Link from "next/link";
 import { Users, Link as LinkIcon } from "@phosphor-icons/react/dist/ssr";
+import AddGroupButton from "@/components/admin/AddGroupButton";
 
 export default async function AdminGroupsPage() {
     const groups = await getGroups();
@@ -8,7 +9,10 @@ export default async function AdminGroupsPage() {
     return (
         <div>
             <div className="mb-6 flex items-center justify-between">
-                <h1 className="text-3xl font-bold text-white">Manage Groups</h1>
+                <div className="flex items-center gap-4">
+                    <h1 className="text-3xl font-bold text-white">Manage Groups</h1>
+                    <AddGroupButton />
+                </div>
                 <Link
                     href="/admin"
                     className="rounded-lg bg-zinc-800 px-4 py-2 text-sm text-white hover:bg-zinc-700"
@@ -24,7 +28,7 @@ export default async function AdminGroupsPage() {
                             <th className="px-6 py-3">Name</th>
                             <th className="px-6 py-3">Website</th>
                             <th className="px-6 py-3">Official</th>
-                            <th className="px-6 py-3">MangaDex ID</th>
+                            <th className="px-6 py-3">ID</th>
                             <th className="px-6 py-3 text-right">Actions</th>
                         </tr>
                     </thead>
@@ -65,7 +69,7 @@ export default async function AdminGroupsPage() {
                                         )}
                                     </td>
                                     <td className="px-6 py-4 font-mono text-xs text-zinc-500">
-                                        {group.mangadex_id || "-"}
+                                        {group.id}
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <Link
