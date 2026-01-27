@@ -11,9 +11,12 @@ export interface Comic {
     status: string;
     type: string;
     rating: number;
+    year?: number | null;
     alt_titles: { title: string }[];
     referrers: { source: string; url: string }[];
-    genres?: { id: string; name: string; slug: string }[];
+    genres?: { id: number; name: string; slug: string }[];
+    themes?: { id: number; name: string; slug: string }[];
+    formats?: { id: number; name: string; slug: string }[];
     creators?: { id: string; name: string; role: string }[];
     publishers?: { id: string; name: string; slug: string }[];
     mangaupdates_url?: string | null;
@@ -26,6 +29,7 @@ export interface Comic {
         chapter_num: number;
         title: string | null;
         group_id?: string | null;
+        created_at: string;
         updated_at: string;
     }[];
     related_series?: {

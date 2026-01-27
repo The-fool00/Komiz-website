@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, House, GearSix } from "@phosphor-icons/react/dist/ssr";
 import { getChapterBySlug, getComic } from "@/lib/api";
 import { notFound } from "next/navigation";
+import ReaderImages from "@/components/ReaderImages";
 
 interface ReaderPageProps {
     params: Promise<{ slug: string; chapterSlug: string }>;
@@ -35,6 +36,14 @@ export default async function ReaderPage({ params }: ReaderPageProps) {
     const buildChapterUrl = (c: typeof allChapters[number]) => {
         if (!c.group_id) return "#"; // Should not happen if data is clean
         return `/comic/${slug}/chapter-${c.chapter_num}-${c.group_id}`;
+    };
+
+    // Helper to build pretty proxy URL: /{slug}/{group_id}/ch-{num}/{pageNum}.webp
+    const getPrettyProxyUrl = (pageIndex: number) => {
+        // Requires group_id from the chapter
+        const groupId = chapter.group_id || "unknown";
+        const pageNum = pageIndex + 1; // 1-indexed
+        return `https://proxy.komiz.dev/v1/proxy/${slug}/${groupId}/ch-${chapterNum}/${pageNum}.webp`;
     };
 
     return (
@@ -78,24 +87,15 @@ export default async function ReaderPage({ params }: ReaderPageProps) {
             {/* Reader Content - Long Strip Mode */}
             <main className="mx-auto max-w-4xl pt-20 pb-32 min-h-screen">
                 {pages.length > 0 ? (
-                    <div className="flex flex-col">
-                        {pages.map((page, index) => (
-                            <div key={index} className="relative w-full">
-                                <img
-                                    src={page}
-                                    alt={`Page ${index + 1}`}
-                                    className="w-full h-auto block"
-                                    loading={index < 3 ? "eager" : "lazy"}
-                                />
-                            </div>
-                        ))}
-                    </div>
+                    <ReaderImages
+                        pages={pages}
+                        slug={slug}
+                        groupId={chapter.group_id || ""}
+                        chapterNum={chapterNum}
+                    />
                 ) : (
                     <div className="flex flex-col items-center justify-center py-20 text-zinc-500">
                         <p className="text-lg">No pages found for this chapter.</p>
-                        <button onClick={() => window.location.reload()} className="mt-4 text-primary hover:underline">
-                            Retry Loading
-                        </button>
                     </div>
                 )}
 

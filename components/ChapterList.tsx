@@ -10,17 +10,21 @@ import {
     ArrowUp
 } from "@phosphor-icons/react";
 import { formatShortTime } from "@/lib/time";
-import { Chapter } from "@/lib/mockdata"; // Use shared interface or redefine
 
-// Re-defining interface to avoid importing from "mockdata" if it causes issues, 
-// but strictly we should share types. Assuming mockdata exports it.
+// API-compatible chapter interface with group object
+interface GroupInfo {
+    id: string;
+    name: string;
+    slug?: string;
+}
+
 export interface ChapterProps {
     id: string;
     chapter_num: number;
-    title: string;
-    updated_at: string;
-    group_name: string;
-    likes?: number;
+    title: string | null;
+    created_at: string;
+    group_id?: string | null;
+    group?: GroupInfo | null;
 }
 
 export default function ChapterList({ chapters, slug }: { chapters: ChapterProps[], slug: string }) {
@@ -35,6 +39,12 @@ export default function ChapterList({ chapters, slug }: { chapters: ChapterProps
             ? a.chapter_num - b.chapter_num
             : b.chapter_num - a.chapter_num;
     });
+
+    // Build reader URL: /comic/{slug}/chapter-{num}-{groupId}
+    const buildChapterUrl = (chapter: ChapterProps) => {
+        if (!chapter.group_id) return "#"; // Fallback if no group assigned
+        return `/comic/${slug}/chapter-${chapter.chapter_num}-${chapter.group_id}`;
+    };
 
     return (
         <div className="mt-10">
@@ -72,37 +82,45 @@ export default function ChapterList({ chapters, slug }: { chapters: ChapterProps
                     Chapter
                 </button>
                 <div className="flex gap-6 items-center">
-                    <div className="flex items-center gap-1 cursor-default">
-                        Group
-                    </div>
-                    <div className="flex items-center gap-1 cursor-default">
-                        Updated
-                    </div>
+                    <div className="w-24 text-right">Group</div>
+                    <div className="w-16 text-right">Uploaded</div>
                 </div>
             </div>
 
             {/* List */}
             <div className="rounded-lg bg-zinc-900/40 border border-zinc-800/50 overflow-hidden max-h-[500px] overflow-y-auto scrollbar-thin scrollbar-track-zinc-900 scrollbar-thumb-zinc-700">
                 {sortedChapters.map((chapter) => (
-                    <Link
+                    <div
                         key={chapter.id}
-                        href={`/comic/${slug}/${chapter.chapter_num}`}
-                        className="flex items-center justify-between px-4 py-3 border-b border-zinc-800/50 last:border-0 hover:bg-zinc-800/50 transition-colors group"
+                        className="flex items-center justify-between px-4 py-3 border-b border-zinc-800/50 last:border-0 hover:bg-zinc-800/50 transition-colors"
                     >
-                        {/* Left: Chapter Title */}
-                        <div className="text-sm font-medium text-zinc-200 group-hover:text-primary transition-colors">
-                            {chapter.title}
-                        </div>
+                        {/* Left: Chapter Title (clickable) */}
+                        <Link
+                            href={buildChapterUrl(chapter)}
+                            className="text-sm font-medium text-zinc-200 hover:text-primary transition-colors"
+                        >
+                            {chapter.title || `Chapter ${chapter.chapter_num}`}
+                        </Link>
 
-                        {/* Right: Meta (Group, Time) */}
-                        <div className="flex items-center gap-6 text-xs text-zinc-500">
-                            <span className="w-20 text-right truncate text-zinc-600 group-hover:text-zinc-400">{chapter.group_name}</span>
+                        {/* Right: Meta (Group clickable, Time) */}
+                        <div className="flex items-center gap-6 text-xs">
+                            {chapter.group ? (
+                                <Link
+                                    href={`/group/${chapter.group.slug || chapter.group.id}`}
+                                    className="w-24 text-right truncate text-primary hover:underline"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    {chapter.group.name}
+                                </Link>
+                            ) : (
+                                <span className="w-24 text-right truncate text-zinc-600">-</span>
+                            )}
 
-                            <div className="flex items-center gap-1 min-w-[2.5rem] justify-end">
-                                <span>{formatShortTime(chapter.updated_at)}</span>
+                            <div className="w-16 text-right text-zinc-500">
+                                {formatShortTime(chapter.created_at)}
                             </div>
                         </div>
-                    </Link>
+                    </div>
                 ))}
             </div>
         </div>

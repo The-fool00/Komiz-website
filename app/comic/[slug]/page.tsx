@@ -1,9 +1,8 @@
 import { getComic } from "@/lib/api";
-import { mockChapters } from "@/lib/mockdata";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { formatShortTime } from "@/lib/time";
-import { ArrowLeft, Star, BookOpen, ShareNetwork } from "@phosphor-icons/react/dist/ssr";
+import { ArrowLeft, Star, BookOpen } from "@phosphor-icons/react/dist/ssr";
 import { PiBookmarkSimple } from "react-icons/pi";
 import ChapterList from "@/components/ChapterList";
 import { marked } from "marked";
@@ -26,8 +25,11 @@ export default async function ComicPage({ params }: ComicPageProps) {
     const altTitlesString = comic.alt_titles?.map(a => a.title).join(" • ") || "";
 
     // Parse markdown description to HTML
-    const descriptionHtml = comic.description
-        ? await marked.parse(comic.description, { breaks: true })
+    // First, escape angle brackets inside markdown link text [<text>](url) -> [&lt;text&gt;](url)
+    const processedDescription = comic.description
+        ?.replace(/\[<([^>]+)>\]/g, '[&lt;$1&gt;]') || "";
+    const descriptionHtml = processedDescription
+        ? await marked.parse(processedDescription, { breaks: true })
         : "No description available.";
 
     return (
@@ -81,7 +83,7 @@ export default async function ComicPage({ params }: ComicPageProps) {
                             <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
                                 <span className="flex items-center gap-1 text-zinc-300">
                                     <Star size={18} weight="fill" className="text-yellow-500" />
-                                    {comic.rating?.toFixed(1) || "N/A"}
+                                    {comic.rating?.toFixed(2) || "N/A"}
                                 </span>
                                 <span className="rounded bg-primary/20 px-2.5 py-1 text-xs font-bold uppercase text-primary">
                                     {comic.status}
@@ -99,10 +101,6 @@ export default async function ComicPage({ params }: ComicPageProps) {
                                     <PiBookmarkSimple size={20} />
                                     Add to Library
                                 </button>
-                                <button className="flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-800/50 px-5 py-3 text-white hover:bg-zinc-700 transition-colors">
-                                    <ShareNetwork size={20} />
-                                    Share
-                                </button>
                             </div>
                         </div>
 
@@ -115,24 +113,18 @@ export default async function ComicPage({ params }: ComicPageProps) {
                             />
                         </div>
 
-                        <ChapterList chapters={mockChapters} slug={slug} />
+                        <ChapterList chapters={comic.chapters || []} slug={slug} />
                     </div>
 
                     {/* Right: Info Block - Fixed max-width sidebar */}
                     <div className="w-full lg:w-80 lg:max-w-[350px] shrink-0">
                         <div className="rounded-lg bg-zinc-900/50 border border-zinc-800 p-5 space-y-3 text-sm">
-                            <div className="flex gap-2">
-                                <span className="text-zinc-500 w-20 shrink-0">Type:</span>
-                                <span className="text-white capitalize">{comic.type}</span>
-                            </div>
-                            <div className="flex gap-2">
-                                <span className="text-zinc-500 w-20 shrink-0">Status:</span>
-                                <span className="text-white capitalize">{comic.status}</span>
-                            </div>
-                            <div className="flex gap-2">
-                                <span className="text-zinc-500 w-20 shrink-0">Rating:</span>
-                                <span className="text-white">{comic.rating?.toFixed(1) || "N/A"}</span>
-                            </div>
+                            {comic.year && (
+                                <div className="flex gap-2">
+                                    <span className="text-zinc-500 w-20 shrink-0">Year:</span>
+                                    <span className="text-white">{comic.year}</span>
+                                </div>
+                            )}
 
                             {/* Genres */}
                             {comic.genres && comic.genres.length > 0 && (
@@ -140,6 +132,26 @@ export default async function ComicPage({ params }: ComicPageProps) {
                                     <span className="text-zinc-500 w-20 shrink-0">Genres:</span>
                                     <span className="text-primary leading-normal">
                                         {comic.genres.map((g: any) => g.name).join(", ")}
+                                    </span>
+                                </div>
+                            )}
+
+                            {/* Themes */}
+                            {comic.themes && comic.themes.length > 0 && (
+                                <div className="flex gap-2">
+                                    <span className="text-zinc-500 w-20 shrink-0">Themes:</span>
+                                    <span className="text-zinc-300 leading-normal">
+                                        {comic.themes.map((t: any) => t.name).join(", ")}
+                                    </span>
+                                </div>
+                            )}
+
+                            {/* Formats */}
+                            {comic.formats && comic.formats.length > 0 && (
+                                <div className="flex gap-2">
+                                    <span className="text-zinc-500 w-20 shrink-0">Formats:</span>
+                                    <span className="text-zinc-300 leading-normal">
+                                        {comic.formats.map((f: any) => f.name).join(", ")}
                                     </span>
                                 </div>
                             )}
@@ -216,7 +228,7 @@ export default async function ComicPage({ params }: ComicPageProps) {
                                             </div>
                                             <div className="flex-1 min-w-0 flex flex-col justify-center">
                                                 <div className="mb-1 text-[10px] font-bold uppercase text-primary">
-                                                    {rel.relation_type}
+                                                    {rel.relation_type.replace(/_/g, ' ')}
                                                 </div>
                                                 <h4 className="line-clamp-2 text-xs font-bold text-white group-hover:text-zinc-300 transition-colors">
                                                     {rel.title}
