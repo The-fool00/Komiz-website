@@ -17,6 +17,7 @@ export interface Comic {
     genres?: { id: number; name: string; slug: string }[];
     themes?: { id: number; name: string; slug: string }[];
     formats?: { id: number; name: string; slug: string }[];
+    content_warnings?: { id: number; name: string; slug: string }[];
     creators?: { id: string; name: string; role: string }[];
     publishers?: { id: string; name: string; slug: string }[];
     mangaupdates_url?: string | null;

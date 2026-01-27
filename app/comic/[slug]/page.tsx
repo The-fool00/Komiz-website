@@ -47,16 +47,17 @@ export default async function ComicPage({ params }: ComicPageProps) {
                 <div className="flex flex-col lg:flex-row gap-8 items-start">
 
                     {/* Left: Cover Image */}
+                    {/* Left: Cover Image - Fixed Size */}
                     <div className="shrink-0">
-                        <div className="relative w-48 md:w-56 overflow-hidden rounded-lg shadow-2xl ring-2 ring-zinc-800">
+                        <div className="relative w-[200px] h-[300px] md:w-[240px] md:h-[360px] overflow-hidden rounded-lg shadow-2xl ring-2 ring-zinc-800 bg-zinc-900">
                             {comic.cover_url ? (
                                 <img
                                     src={comic.cover_url}
                                     alt={comic.title}
-                                    className="w-full h-auto object-cover"
+                                    className="w-full h-full object-cover"
                                 />
                             ) : (
-                                <div className="flex aspect-[2/3] w-full items-center justify-center bg-zinc-800 text-zinc-600">
+                                <div className="flex w-full h-full items-center justify-center bg-zinc-800 text-zinc-600">
                                     No Cover
                                 </div>
                             )}
@@ -66,7 +67,7 @@ export default async function ComicPage({ params }: ComicPageProps) {
                     {/* Center: Title, Meta, Buttons, Synopsis (vertical stack) */}
                     <div className="flex-1 min-w-0">
                         {/* Top Info Wrapper - enforce min-height to push Synopsis below cover level */}
-                        <div className="flex flex-col justify-start lg:min-h-[21rem]">
+                        <div className="flex flex-col justify-start lg:min-h-[22rem]">
                             {/* Title */}
                             <h1 className="text-3xl font-bold text-white md:text-4xl">{comic.title}</h1>
 
@@ -85,9 +86,35 @@ export default async function ComicPage({ params }: ComicPageProps) {
                                     <Star size={18} weight="fill" className="text-yellow-500" />
                                     {comic.rating?.toFixed(2) || "N/A"}
                                 </span>
-                                <span className="rounded bg-primary/20 px-2.5 py-1 text-xs font-bold uppercase text-primary">
-                                    {comic.status}
-                                </span>
+
+                                {/* Status Badge with Dynamic Colors */}
+                                {(() => {
+                                    const statusLower = comic.status.toLowerCase();
+                                    let badgeClass = "bg-zinc-500/20 text-zinc-400";
+
+                                    if (statusLower === "ongoing") badgeClass = "bg-green-500/20 text-green-400";
+                                    else if (statusLower === "completed") badgeClass = "bg-blue-500/20 text-blue-400";
+                                    else if (statusLower === "hiatus") badgeClass = "bg-yellow-500/20 text-yellow-400";
+                                    else if (statusLower === "cancelled") badgeClass = "bg-red-500/20 text-red-400";
+
+                                    return (
+                                        <span className={`rounded px-2.5 py-1 text-xs font-bold uppercase ${badgeClass}`}>
+                                            {comic.status}
+                                        </span>
+                                    );
+                                })()}
+
+                                {/* Content Warnings */}
+                                {comic.content_warnings && comic.content_warnings.length > 0 && (
+                                    <>
+                                        {comic.content_warnings.map((warning: any) => (
+                                            <span key={warning.id} className="rounded bg-red-500/20 px-2.5 py-1 text-xs font-bold uppercase text-red-500 border border-red-500/20">
+                                                {warning.name}
+                                            </span>
+                                        ))}
+                                    </>
+                                )}
+
                                 <span className="uppercase text-zinc-500">{comic.type}</span>
                             </div>
 
@@ -122,7 +149,7 @@ export default async function ComicPage({ params }: ComicPageProps) {
                             {comic.year && (
                                 <div className="flex gap-2">
                                     <span className="text-zinc-500 w-20 shrink-0">Year:</span>
-                                    <span className="text-white">{comic.year}</span>
+                                    <span className="text-[lab(84.9837_0.601262_-2.17985)]">{comic.year}</span>
                                 </div>
                             )}
 
@@ -130,7 +157,7 @@ export default async function ComicPage({ params }: ComicPageProps) {
                             {comic.genres && comic.genres.length > 0 && (
                                 <div className="flex gap-2">
                                     <span className="text-zinc-500 w-20 shrink-0">Genres:</span>
-                                    <span className="text-primary leading-normal">
+                                    <span className="text-[lab(84.9837_0.601262_-2.17985)] leading-normal">
                                         {comic.genres.map((g: any) => g.name).join(", ")}
                                     </span>
                                 </div>
@@ -140,7 +167,7 @@ export default async function ComicPage({ params }: ComicPageProps) {
                             {comic.themes && comic.themes.length > 0 && (
                                 <div className="flex gap-2">
                                     <span className="text-zinc-500 w-20 shrink-0">Themes:</span>
-                                    <span className="text-zinc-300 leading-normal">
+                                    <span className="text-[lab(84.9837_0.601262_-2.17985)] leading-normal">
                                         {comic.themes.map((t: any) => t.name).join(", ")}
                                     </span>
                                 </div>
@@ -150,7 +177,7 @@ export default async function ComicPage({ params }: ComicPageProps) {
                             {comic.formats && comic.formats.length > 0 && (
                                 <div className="flex gap-2">
                                     <span className="text-zinc-500 w-20 shrink-0">Formats:</span>
-                                    <span className="text-zinc-300 leading-normal">
+                                    <span className="text-[lab(84.9837_0.601262_-2.17985)] leading-normal">
                                         {comic.formats.map((f: any) => f.name).join(", ")}
                                     </span>
                                 </div>
@@ -160,7 +187,7 @@ export default async function ComicPage({ params }: ComicPageProps) {
                             {comic.creators && comic.creators.some(c => c.role === 'Author') && (
                                 <div className="flex gap-2">
                                     <span className="text-zinc-500 w-20 shrink-0">Authors:</span>
-                                    <span className="text-white leading-normal">
+                                    <span className="text-[lab(84.9837_0.601262_-2.17985)] leading-normal">
                                         {comic.creators.filter(c => c.role === 'Author').map(c => c.name).join(", ")}
                                     </span>
                                 </div>
@@ -170,7 +197,7 @@ export default async function ComicPage({ params }: ComicPageProps) {
                             {comic.creators && comic.creators.some(c => c.role === 'Artist') && (
                                 <div className="flex gap-2">
                                     <span className="text-zinc-500 w-20 shrink-0">Artists:</span>
-                                    <span className="text-white leading-normal">
+                                    <span className="text-[lab(84.9837_0.601262_-2.17985)] leading-normal">
                                         {comic.creators.filter(c => c.role === 'Artist').map(c => c.name).join(", ")}
                                     </span>
                                 </div>

@@ -37,6 +37,7 @@ export default function SidebarTabs({ recent, completed }: { recent: Comic[], co
                                 fill
                                 className="object-cover transition-opacity group-hover:opacity-80"
                                 sizes="64px"
+                                unoptimized
                             />
                         </div>
                         <div className="flex-1 min-w-0 flex flex-col justify-center">
