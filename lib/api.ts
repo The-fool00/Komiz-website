@@ -21,6 +21,13 @@ export interface Comic {
         chapter_num: number;
         updated_at: string;
     } | null;
+    chapters?: {
+        id: string;
+        chapter_num: number;
+        title: string | null;
+        group_id?: string | null;
+        updated_at: string;
+    }[];
     related_series?: {
         id: number;
         title: string;
@@ -132,7 +139,7 @@ export interface Chapter {
 }
 
 export async function getChapterBySlug(comicSlug: string, chapterSlug: string): Promise<Chapter> {
-    const res = await fetch(`${API_BASE}/comics/read/${comicSlug}/${chapterSlug}`, {
+    const res = await fetch(`${API_BASE}/read/${comicSlug}/${chapterSlug}`, {
         next: { revalidate: 60 },
     });
 
@@ -141,6 +148,18 @@ export async function getChapterBySlug(comicSlug: string, chapterSlug: string): 
             throw new Error("Chapter not found");
         }
         throw new Error(`Failed to fetch chapter: ${res.status} ${res.statusText}`);
+    }
+
+    return res.json();
+}
+
+export async function getComicChapters(comicId: string): Promise<Chapter[]> {
+    const res = await fetch(`${API_BASE}/${comicId}/chapters`, {
+        next: { revalidate: 60 },
+    });
+
+    if (!res.ok) {
+        return [];
     }
 
     return res.json();
@@ -158,6 +177,18 @@ export interface Group {
     official: boolean;
     description: string | null;
     mangadex_id: string | null;
+}
+
+export async function getGroups(): Promise<Group[]> {
+    const res = await fetch(`${API_BASE}/groups/`, {
+        next: { revalidate: 60 },
+    });
+
+    if (!res.ok) {
+        return [];
+    }
+
+    return res.json();
 }
 
 export async function getGroup(slug: string): Promise<Group> {

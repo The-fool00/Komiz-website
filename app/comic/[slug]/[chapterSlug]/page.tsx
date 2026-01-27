@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, House, List, GearSix } from "@phosphor-icons/react/dist/ssr";
-import { getChapterBySlug } from "@/lib/api";
+import { ArrowLeft, ArrowRight, House, GearSix } from "@phosphor-icons/react/dist/ssr";
+import { getChapterBySlug, getComic } from "@/lib/api";
 import { notFound } from "next/navigation";
 
 interface ReaderPageProps {
@@ -10,107 +10,170 @@ interface ReaderPageProps {
 export default async function ReaderPage({ params }: ReaderPageProps) {
     const { slug, chapterSlug } = await params;
 
-    let chapter;
-    try {
-        chapter = await getChapterBySlug(slug, chapterSlug);
-    } catch (e) {
-        console.error("Failed to load chapter", e);
+    const [chapter, comic] = await Promise.all([
+        getChapterBySlug(slug, chapterSlug).catch(() => null),
+        getComic(slug).catch(() => null)
+    ]);
+
+    if (!chapter || !comic) {
         notFound();
     }
 
-    const pages = chapter.images && chapter.images.length > 0 ? chapter.images : [];
+    const pages = chapter.images || [];
     const chapterNum = chapter.chapter_num;
 
-    // TODO: logic for next/prev chapters. 
-    // For now, simple assumption or disabled links until API supports fetching adjacent chapters context 
-    // or we fetch the full list here.
+    // Find adjacent chapters
+    // TODO: The API should ideally provide prev/next links. 
+    // For now, we manually sort the chapters from comic detail to find adjacent ones.
+    const allChapters = comic.chapters?.sort((a, b) => a.chapter_num - b.chapter_num) || [];
+    const currentIndex = allChapters.findIndex((c) => c.chapter_num === chapterNum);
+
+    const prevChapter = currentIndex > 0 ? allChapters[currentIndex - 1] : null;
+    const nextChapter = currentIndex < allChapters.length - 1 ? allChapters[currentIndex + 1] : null;
+
+    // Helper to build chapter URL: /comic/{slug}/chapter-{num}-{groupId}
+    const buildChapterUrl = (c: typeof allChapters[number]) => {
+        if (!c.group_id) return "#"; // Should not happen if data is clean
+        return `/comic/${slug}/chapter-${c.chapter_num}-${c.group_id}`;
+    };
 
     return (
-        <div className="min-h-screen bg-black">
+        <div className="min-h-screen bg-black text-zinc-200">
             {/* Top Navigation */}
-            <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between bg-gradient-to-b from-black/90 to-transparent p-4">
-                <div className="flex items-center gap-4">
+            <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between bg-zinc-900/90 backdrop-blur-md border-b border-zinc-800 p-3 shadow-lg transition-transform duration-300">
+                <div className="flex items-center gap-3">
                     <Link
                         href={`/comic/${slug}`}
-                        className="flex items-center gap-2 rounded-lg bg-zinc-800/80 px-3 py-2 text-sm text-white hover:bg-zinc-700"
+                        className="flex items-center gap-2 rounded-lg bg-zinc-800 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-700 transition-colors"
                     >
-                        <ArrowLeft size={16} />
-                        Back
+                        <ArrowLeft size={18} />
+                        <span className="hidden sm:inline">Back</span>
                     </Link>
                     <Link
                         href="/"
-                        className="rounded-lg bg-zinc-800/80 p-2 text-white hover:bg-zinc-700"
+                        className="rounded-lg bg-zinc-800 p-2 text-white hover:bg-zinc-700 transition-colors"
+                        title="Home"
                     >
                         <House size={20} />
                     </Link>
                 </div>
 
-                <div className="text-center">
-                    <h1 className="text-sm font-medium text-white/80">
-                        {chapter.title || `Chapter ${chapterNum}`}
+                <div className="text-center flex-1 mx-4 truncate">
+                    <h1 className="text-sm sm:text-base font-semibold text-white truncate">
+                        {comic.title}
                     </h1>
-                    {chapter.group && (
-                        <p className="text-xs text-zinc-500">{chapter.group.name}</p>
-                    )}
+                    <p className="text-xs text-zinc-400">
+                        {chapter.title ? `${chapter.chapter_num} - ${chapter.title}` : `Chapter ${chapter.chapter_num}`}
+                    </p>
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <button className="rounded-lg bg-zinc-800/80 p-2 text-white hover:bg-zinc-700">
-                        <List size={20} />
-                    </button>
-                    <button className="rounded-lg bg-zinc-800/80 p-2 text-white hover:bg-zinc-700">
+                    {/* Settings / Menu Placeholders */}
+                    <button className="hidden sm:block rounded-lg bg-zinc-800 p-2 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors">
                         <GearSix size={20} />
                     </button>
                 </div>
             </nav>
 
             {/* Reader Content - Long Strip Mode */}
-            <div className="mx-auto max-w-3xl pt-20 pb-32">
+            <main className="mx-auto max-w-4xl pt-20 pb-32 min-h-screen">
                 {pages.length > 0 ? (
-                    pages.map((page, index) => (
-                        <div key={index} className="relative w-full">
-                            <img
-                                src={page}
-                                alt={`Page ${index + 1}`}
-                                className="w-full"
-                                loading={index < 3 ? "eager" : "lazy"}
-                            />
-                        </div>
-                    ))
+                    <div className="flex flex-col">
+                        {pages.map((page, index) => (
+                            <div key={index} className="relative w-full">
+                                <img
+                                    src={page}
+                                    alt={`Page ${index + 1}`}
+                                    className="w-full h-auto block"
+                                    loading={index < 3 ? "eager" : "lazy"}
+                                />
+                            </div>
+                        ))}
+                    </div>
                 ) : (
-                    <div className="flex h-64 items-center justify-center text-zinc-500">
-                        No pages found for this chapter.
+                    <div className="flex flex-col items-center justify-center py-20 text-zinc-500">
+                        <p className="text-lg">No pages found for this chapter.</p>
+                        <button onClick={() => window.location.reload()} className="mt-4 text-primary hover:underline">
+                            Retry Loading
+                        </button>
                     </div>
                 )}
 
-                {/* End of Chapter */}
-                <div className="py-16 text-center">
-                    <p className="mb-4 text-zinc-500">End of Chapter {chapterNum}</p>
-                    <div className="flex justify-center gap-4">
-                        {/* 
-                           TODO: Implement Next/Prev navigation correctly.
-                           Requires knowing the slug of adjacent chapters.
-                        */}
-                        <Link
-                            href={`/comic/${slug}`}
-                            className="flex items-center gap-2 rounded-lg bg-zinc-800 px-6 py-3 text-white hover:bg-zinc-700"
-                        >
-                            <List size={16} />
-                            Chapter List
-                        </Link>
+                {/* End of Chapter Actions */}
+                <div className="py-16 text-center space-y-6">
+                    <p className="text-zinc-500 font-medium">End of Chapter {chapterNum}</p>
+
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 px-4">
+                        {prevChapter && (
+                            <Link
+                                href={buildChapterUrl(prevChapter)}
+                                className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-lg bg-zinc-800 px-6 py-3 text-white hover:bg-zinc-700 border border-zinc-700 transition-all active:scale-95"
+                            >
+                                <ArrowLeft size={16} />
+                                Previous Chapter
+                            </Link>
+                        )}
+
+                        {nextChapter ? (
+                            <Link
+                                href={buildChapterUrl(nextChapter)}
+                                className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-lg bg-primary px-8 py-3 font-bold text-black hover:bg-green-400 shadow-lg shadow-green-500/20 transition-all active:scale-95"
+                            >
+                                Next Chapter
+                                <ArrowRight size={16} />
+                            </Link>
+                        ) : (
+                            <Link
+                                href={`/comic/${slug}`}
+                                className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-lg bg-zinc-800 px-8 py-3 text-white hover:bg-zinc-700 border border-zinc-700"
+                            >
+                                Return to Series
+                            </Link>
+                        )}
                     </div>
                 </div>
-            </div>
+            </main>
 
             {/* Bottom Navigation */}
-            <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-between bg-gradient-to-t from-black/90 to-transparent p-4">
-                <div className="flex-1 px-4">
-                    <div className="h-1 w-full rounded-full bg-zinc-800">
-                        <div className="h-1 w-1/3 rounded-full bg-primary" />
-                    </div>
-                    <div className="mt-1 text-center text-xs text-zinc-500">
+            <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-between bg-zinc-900/95 backdrop-blur-md border-t border-zinc-800 p-3">
+                <div className="flex-1">
+                    {prevChapter ? (
+                        <Link
+                            href={buildChapterUrl(prevChapter)}
+                            className="flex w-fit items-center gap-2 rounded-lg py-2 px-3 text-sm text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors"
+                        >
+                            <ArrowLeft size={16} />
+                            <span className="hidden sm:inline">Prev</span>
+                        </Link>
+                    ) : (
+                        <span className="flex w-fit items-center gap-2 py-2 px-3 text-sm text-zinc-600 cursor-not-allowed">
+                            <ArrowLeft size={16} />
+                            <span className="hidden sm:inline">Prev</span>
+                        </span>
+                    )}
+                </div>
+
+                <div className="px-4 text-center">
+                    <span className="text-xs font-mono text-zinc-500">
                         {pages.length} Pages
-                    </div>
+                    </span>
+                </div>
+
+                <div className="flex-1 flex justify-end">
+                    {nextChapter ? (
+                        <Link
+                            href={buildChapterUrl(nextChapter)}
+                            className="flex w-fit items-center gap-2 rounded-lg py-2 px-3 text-sm font-bold text-primary hover:text-green-400 hover:bg-zinc-800 transition-colors"
+                        >
+                            <span className="hidden sm:inline">Next</span>
+                            <ArrowRight size={16} />
+                        </Link>
+                    ) : (
+                        <span className="flex w-fit items-center gap-2 py-2 px-3 text-sm text-zinc-600 cursor-not-allowed">
+                            <span className="hidden sm:inline">Next</span>
+                            <ArrowRight size={16} />
+                        </span>
+                    )}
                 </div>
             </nav>
         </div>

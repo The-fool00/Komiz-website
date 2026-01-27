@@ -1,4 +1,5 @@
 
+import Link from "next/link";
 import {
     Users,
     Books,
@@ -58,6 +59,21 @@ export default async function AdminDashboard() {
                         </div>
                     </div>
                 ))}
+
+                {/* Groups Management Card Link */}
+                <Link href="/admin/groups" className="block group">
+                    <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 transition-colors hover:bg-zinc-800/80">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 rounded-lg bg-purple-500/10 text-purple-500">
+                                <Users size={24} weight="fill" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-medium text-zinc-400 group-hover:text-white transition-colors">Scanlation Groups</p>
+                                <p className="text-sm font-bold text-white mt-1">Manage Groups &rarr;</p>
+                            </div>
+                        </div>
+                    </div>
+                </Link>
             </div>
 
             <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
