@@ -3,6 +3,7 @@ import UpdateCard from "@/components/UpdateCard";
 import SidebarTabs from "@/components/SidebarTabs";
 import ComicCarousel from "@/components/ComicCarousel";
 import { getComics, Comic } from "@/lib/api";
+import { formatShortTime } from "@/lib/time";
 import Link from "next/link";
 
 export default async function Home() {
@@ -46,7 +47,7 @@ export default async function Home() {
         <div className="lg:col-span-3 space-y-10">
 
           {/* Section 1: Followed Comics (Top Rated) */}
-          <ComicCarousel title="Followed Comics" comics={followedComics} showRank={false} variant="standard" />
+          <ComicCarousel title="Followed Comics" comics={followedComics} showRank={false} variant="followed" />
 
           {/* Section 2: Most Followed New Comics */}
           <ComicCarousel title="Most Followed New Comics" comics={newComics} showRank={true} />
@@ -67,9 +68,10 @@ export default async function Home() {
                   key={comic.id}
                   title={comic.title}
                   cover={comic.cover_url || "/placeholder.png"}
-                  chapter={comic.last_chapter ? `Ch.${comic.last_chapter.chapter_num}` : "-"}
-                  time={comic.status} // Ideally this should be 'updated_at' relative time, but using status for now as placeholer or need a format helper
+                  chapter={comic.last_chapter ? `Chap ${comic.last_chapter.chapter_num}` : "-"}
+                  time={comic.updated_at ? formatShortTime(comic.updated_at) : comic.status}
                   slug={comic.slug}
+                  group={comic.last_chapter?.group?.name || "-"}
                 />
               ))}
             </div>

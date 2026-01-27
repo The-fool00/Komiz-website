@@ -23,7 +23,9 @@ export interface Comic {
     mangaupdates_url?: string | null;
     last_chapter: {
         chapter_num: number;
+        created_at: string;
         updated_at: string;
+        group?: { id: string; name: string; slug: string } | null;
     } | null;
     chapters?: {
         id: string;

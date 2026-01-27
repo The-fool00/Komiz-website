@@ -10,7 +10,7 @@ interface ComicCarouselProps {
     title: string;
     comics: Comic[];
     showRank?: boolean;
-    variant?: "overlay" | "standard";
+    variant?: "overlay" | "standard" | "followed";
 }
 
 export default function ComicCarousel({ title, comics, showRank = false, variant = "overlay" }: ComicCarouselProps) {
@@ -60,11 +60,11 @@ export default function ComicCarousel({ title, comics, showRank = false, variant
                             rank={showRank ? index + 1 : undefined}
                             title={comic.title}
                             cover={comic.cover_url || "/placeholder.png"}
-                            chapter={comic.last_chapter ? `Ch.${comic.last_chapter.chapter_num}` : "No chapters"}
-                            time={comic.last_chapter?.updated_at ? formatShortTime(comic.last_chapter.updated_at) : comic.status}
+                            chapter={comic.last_chapter ? `Chap ${comic.last_chapter.chapter_num}` : "-"}
+                            time={comic.last_chapter?.created_at ? formatShortTime(comic.last_chapter.created_at) : "-"}
                             slug={comic.slug}
                             variant={variant}
-                            group={comic.publishers?.[0]?.name}
+                            group={comic.last_chapter?.group?.name || "-"}
                         />
                     </div>
                 ))}
