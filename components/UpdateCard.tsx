@@ -27,8 +27,11 @@ export default function UpdateCard({ title, cover, chapter, time, slug, group }:
             {/* Info Below */}
             <div className="mt-2 space-y-0.5">
                 <div className="text-sm font-bold text-white">{chapter}</div>
-                <div className="text-xs text-zinc-400">{time}</div>
-                <div className="text-xs text-primary font-medium truncate">{group || "-"}</div>
+                <div className="flex items-center gap-1.5 text-xs">
+                    <span className="text-zinc-400 font-medium truncate max-w-[60%]">{group || "-"}</span>
+                    <span className="text-zinc-500 text-[10px]">•</span>
+                    <span className="text-zinc-400 truncate">{time}</span>
+                </div>
             </div>
             <h3 className="mt-1 line-clamp-1 text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">
                 {title}
