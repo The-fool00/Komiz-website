@@ -91,7 +91,7 @@ export async function getComics(params: ComicFilterParams): Promise<PaginatedRes
 
     // Append trailing slash to avoid 307 Redirects
     const res = await fetch(`${API_BASE}/comics/?${query.toString()}`, {
-        next: { revalidate: 60 },
+        next: { revalidate: 0 },
     });
 
     if (!res.ok) {
@@ -126,7 +126,7 @@ export async function getGenres(): Promise<Genre[]> {
 
 export async function getComic(slugOrId: string): Promise<Comic> {
     const res = await fetch(`${API_BASE}/comics/${slugOrId}`, {
-        next: { revalidate: 60 },
+        next: { revalidate: 0 },
     });
 
     if (!res.ok) {
@@ -157,7 +157,7 @@ export interface Chapter {
 
 export async function getChapterBySlug(comicSlug: string, chapterSlug: string): Promise<Chapter> {
     const res = await fetch(`${API_BASE}/read/${comicSlug}/${chapterSlug}`, {
-        next: { revalidate: 60 },
+        next: { revalidate: 0 },
     });
 
     if (!res.ok) {
@@ -172,7 +172,7 @@ export async function getChapterBySlug(comicSlug: string, chapterSlug: string): 
 
 export async function getComicChapters(comicId: string): Promise<Chapter[]> {
     const res = await fetch(`${API_BASE}/${comicId}/chapters`, {
-        next: { revalidate: 60 },
+        next: { revalidate: 0 },
     });
 
     if (!res.ok) {
@@ -244,7 +244,7 @@ export async function getGroup(slug: string): Promise<Group> {
 
 export async function getGroupChapters(slug: string): Promise<Chapter[]> {
     const res = await fetch(`${API_BASE}/groups/${slug}/chapters`, {
-        next: { revalidate: 60 },
+        next: { revalidate: 0 },
     });
 
     if (!res.ok) {
